@@ -92,31 +92,29 @@ print(f"Preprocessed test data shape: {x_test.shape}")
 ```python
 # Create CNN using Keras
 def create_cnn_keras(input_shape, num_classes):
-    """
-    Create a CNN using TensorFlow/Keras.
-    
-    Requirements:
-    - Must use at least 2 convolutional layers
-    - Must include pooling and batch normalization
-    - Must use categorical crossentropy loss
-    
-    Goals:
-    - Achieve > 85% accuracy on test set
-    - Minimize overfitting using batch normalization and dropout
-    - Train efficiently with appropriate batch size and learning rate
-    
-    Args:
-        input_shape: Shape of input data (should be (28, 28, 1) for grayscale images)
-        num_classes: Number of output classes (26 for letters)
-    
-    Returns:
-        Compiled Keras model
-    """
-    model = tf.keras.Sequential([...])
-    
-    model.compile(...)
+    model = tf.keras.Sequential([
+        tf.keras.layers.Conv2D(32, (3, 3), activation='relu', input_shape=input_shape),
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.MaxPooling2D((2, 2)),
+        
+        tf.keras.layers.Conv2D(64, (3, 3), activation='relu'),
+        tf.keras.layers.BatchNormalization(),
+        tf.keras.layers.MaxPooling2D((2, 2)),
+        
+        tf.keras.layers.Flatten(),
+        tf.keras.layers.Dense(128, activation='relu'),
+        tf.keras.layers.Dropout(0.5),
+        tf.keras.layers.Dense(num_classes, activation='softmax')
+    ])
+
+    model.compile(
+        optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
+        loss='categorical_crossentropy',
+        metrics=['accuracy']
+    )
     
     return model
+
 
 # Create and compile model
 model = create_cnn_keras(input_shape=(28, 28, 1), num_classes=26)
@@ -199,6 +197,27 @@ history = model.fit(
     batch_size=32,
     callbacks=callbacks
 )
+
+from sklearn.metrics import precision_score, recall_score, f1_score
+
+# Predict
+predictions = model.predict(x_test)
+pred_labels = np.argmax(predictions, axis=1)
+true_labels = np.argmax(y_test, axis=1)
+
+# Compute metrics
+precision = precision_score(true_labels, pred_labels, average='macro')
+recall = recall_score(true_labels, pred_labels, average='macro')
+f1 = f1_score(true_labels, pred_labels, average='macro')
+
+# Save metrics
+with open("results/part_2/cnn_keras_metrics.txt", "w") as f:
+    f.write("model: cnn_keras\n")
+    f.write(f"accuracy: {test_accuracy:.4f}\n")
+    f.write(f"precision: {precision:.4f}\n")
+    f.write(f"recall: {recall:.4f}\n")
+    f.write(f"f1_score: {f1:.4f}\n")
+
 
 # Plot training curves
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 5))

@@ -152,31 +152,26 @@ X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.
 def create_simple_nn(input_shape):
     """
     Create a simple neural network for ECG classification.
-    
-    Requirements:
-    - Must use at least 2 dense layers
-    - Must include dropout layers
-    - Must use binary crossentropy loss
-    - Must include AUC metric
-    
-    Goals:
-    - Achieve > 75% accuracy on test set
-    - Achieve AUC > 0.80
-    - Achieve F1-score > 0.70
-    - Minimize overfitting using dropout
-    - Train efficiently with appropriate batch size
-    
-    Args:
-        input_shape: Shape of input data (should be (180, 2) for ECG windows)
-    
-    Returns:
-        Compiled Keras model
     """
-    model = tf.keras.Sequential([...])
-    
-    model.compile(...)
-    
+
+    model = tf.keras.Sequential([
+        tf.keras.layers.Flatten(input_shape=input_shape),
+        tf.keras.layers.Dense(128, activation='relu'),
+        tf.keras.layers.Dropout(0.5),
+        tf.keras.layers.Dense(64, activation='relu'),
+        tf.keras.layers.Dropout(0.3),
+        tf.keras.layers.Dense(1, activation='sigmoid')  # Binary classification
+    ])
+
+    model.compile(
+        optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
+        loss='binary_crossentropy',
+        metrics=['accuracy', tf.keras.metrics.AUC(name='auc')]
+    )
+
     return model
+
+
 
 # Create and compile model
 model = create_simple_nn(input_shape=(180, 2))
@@ -198,10 +193,16 @@ callbacks = [
         factor=0.2,
         patience=3
     ),
+    model_type = 'dense'
+    # In callbacks
     tf.keras.callbacks.ModelCheckpoint(
-        'models/ecg_classifier.keras',
-        save_best_only=True
+    f'models/ecg_classifier_{model_type}.keras',
+    save_best_only=True
     )
+    
+    # In metrics save path
+    # with open(f'results/part_3/ecg_classifier_{model_type}_metrics.txt', 'w') as f:
+    ...
 ]
 
 # Train model
@@ -258,7 +259,10 @@ plt.ylabel('True')
 plt.show()
 
 # Calculate additional metrics
-tn, fp, fn, tp = cm.numpy().ravel()
+from sklearn.metrics import confusion_matrix
+
+cm = confusion_matrix(y_test, predicted_labels)
+tn, fp, fn, tp = cm.ravel() if cm.size == 4 else (0, 0, 0, 0)
 precision = tp / (tp + fp)
 recall = tp / (tp + fn)
 f1 = 2 * (precision * recall) / (precision + recall)

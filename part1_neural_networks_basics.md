@@ -92,27 +92,21 @@ print(f"Preprocessed test data shape: {x_test.shape}")
 def create_simple_nn(input_shape, num_classes):
     """
     Create a simple neural network for EMNIST classification.
-    
-    Requirements:
-    - Must use at least 2 dense layers
-    - Must include dropout layers
-    - Must use categorical crossentropy loss
-    
-    Goals:
-    - Achieve > 80% accuracy on test set
-    - Minimize overfitting using dropout
-    - Train efficiently with appropriate batch size
-    
-    Args:
-        input_shape: Shape of input data (should be (784,) for flattened 28x28 images)
-        num_classes: Number of output classes (26 for letters)
-    
-    Returns:
-        Compiled Keras model
     """
-    model = tf.keras.Sequential([...])
+    model = tf.keras.Sequential([
+        tf.keras.layers.Input(shape=input_shape),
+        tf.keras.layers.Dense(256, activation='relu'),
+        tf.keras.layers.Dropout(0.5),
+        tf.keras.layers.Dense(128, activation='relu'),
+        tf.keras.layers.Dropout(0.3),
+        tf.keras.layers.Dense(num_classes, activation='softmax')
+    ])
     
-    model.compile(...)
+    model.compile(
+        optimizer='adam',
+        loss='categorical_crossentropy',
+        metrics=['accuracy']
+    )
     
     return model
 
@@ -179,6 +173,18 @@ plt.show()
 test_loss, test_accuracy = model.evaluate(x_test, y_test)
 print(f"Test accuracy: {test_accuracy:.4f}")
 
+from sklearn.metrics import precision_score, recall_score, f1_score
+
+# Convert one-hot labels to integer labels
+true_labels = np.argmax(y_test, axis=1)
+predicted_labels = np.argmax(predictions, axis=1)
+
+# Calculate metrics
+precision = precision_score(true_labels, predicted_labels, average='macro')
+recall = recall_score(true_labels, predicted_labels, average='macro')
+f1 = f1_score(true_labels, predicted_labels, average='macro')
+
+
 # Get predictions
 predictions = model.predict(x_test)
 predicted_labels = np.argmax(predictions, axis=1)
@@ -208,12 +214,13 @@ metrics = {
 # Save to file
 with open('results/part_1/emnist_classifier_metrics.txt', 'w') as f:
     f.write(f"model: {metrics['model']}\n")
-    f.write(f"accuracy: {metrics['accuracy']}\n")
-    f.write(f"precision: {metrics['precision']}\n")
-    f.write(f"recall: {metrics['recall']}\n")
-    f.write(f"f1_score: {metrics['f1_score']}\n")
+    f.write(f"accuracy: {metrics['accuracy']:.4f}\n")
+    f.write(f"precision: {metrics['precision']:.4f}\n")
+    f.write(f"recall: {metrics['recall']:.4f}\n")
+    f.write(f"f1_score: {metrics['f1_score']:.4f}\n")
     f.write(f"confusion_matrix: {metrics['confusion_matrix']}\n")
     f.write("----\n")
+
 ```
 
 ## Progress Checkpoints
