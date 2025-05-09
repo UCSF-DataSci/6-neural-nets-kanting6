@@ -10,7 +10,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import confusion_matrix
 
 # Set seeds for reproducibility
-tf.random.set_seed(42)
+tf.random.set_seed(42)  
 np.random.seed(42)
 
 # Create directories
@@ -19,7 +19,7 @@ os.makedirs('results/part_3', exist_ok=True)
 os.makedirs('logs', exist_ok=True)
 os.makedirs('data', exist_ok=True)
 
-# Download MIT-BIH Arrhythmia dataset if not already present
+# Download MIT-BIH Arrhythmia dataset 
 data_dir = 'data/mitdb'
 if not os.path.exists(data_dir):
     print("Downloading MIT-BIH Arrhythmia Database...")
